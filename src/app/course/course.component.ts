@@ -46,18 +46,17 @@ export class CourseComponent implements OnInit, AfterViewInit {
     }
 
     setUpInputEvent = () => {
-      const searchLessons$ = fromEvent<any>(this.input.nativeElement, 'keyup')
+      this.lessons$ = fromEvent<any>(this.input.nativeElement, 'keyup')
         .pipe(
           map(event => event.target.value),
+          startWith(''),
           debounceTime(400),
           distinctUntilChanged(),
           switchMap(term => this.searchLessons(term))
         );
-        const initialLessons$ = this.searchLessons();
-        this.lessons$ = concat(initialLessons$, searchLessons$);
     }
 
-    searchLessons = (searchTerm = ''): Observable<Lesson[]> => {
+    searchLessons = (searchTerm: string = ''): Observable<Lesson[]> => {
       return createHttpObservable(`/api/lessons?courseId=${this.courseId}&pageSize=100&filter=${searchTerm}`)
       .pipe(
         map(res => res['payload'])
