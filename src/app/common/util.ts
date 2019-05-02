@@ -1,4 +1,5 @@
 import { Observable } from 'rxjs';
+import { tap } from 'rxjs/operators';
 
 export function createHttpObservable(url) {
   return Observable.create(observer => {
@@ -23,3 +24,9 @@ export function createHttpObservable(url) {
   });
 }
 
+
+export const debugOperator = (message: string) =>
+  (source: Observable<any>) => source
+    .pipe(
+      tap((val) => console.log(message, val))
+    );

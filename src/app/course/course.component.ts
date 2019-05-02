@@ -13,9 +13,9 @@ import {
     withLatestFrom,
     concatAll, shareReplay
 } from 'rxjs/operators';
-import {merge, fromEvent, Observable, concat} from 'rxjs';
+import { fromEvent, Observable, forkJoin} from 'rxjs';
 import {Lesson} from '../model/lesson';
-import { createHttpObservable } from '../common/util';
+import { createHttpObservable, debugOperator } from '../common/util';
 import { searchLessons } from '../../../server/search-lessons.route';
 
 
@@ -38,7 +38,18 @@ export class CourseComponent implements OnInit, AfterViewInit {
 
     ngOnInit() {
       this.courseId = this.route.snapshot.params['id'];
-      this.course$ = createHttpObservable(`/api/courses/${this.courseId}`);
+      this.course$ = createHttpObservable(`/api/courses/${this.courseId}`)
+        .pipe(
+          debugOperator('Course: ')
+        );
+
+      // const lessons$ = this.searchLessons();
+      // const coursesAndLessons$ = forkJoin(this.course$, lessons$);
+      // coursesAndLessons$.subscribe(
+      //   ([course, lessons]) => {
+      //     console.log('Course: ', course),
+      //     console.log('Lessons: ', lessons);
+      //   });
     }
 
     ngAfterViewInit() {
@@ -50,9 +61,11 @@ export class CourseComponent implements OnInit, AfterViewInit {
         .pipe(
           map(event => event.target.value),
           startWith(''),
+          debugOperator('Search: '),
           debounceTime(400),
           distinctUntilChanged(),
-          switchMap(term => this.searchLessons(term))
+          switchMap(term => this.searchLessons(term)),
+          debugOperator('Lessons: '),
         );
     }
 
